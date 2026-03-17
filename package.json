@@ -1,0 +1,22 @@
+{
+  "name": "dota-bot",
+  "version": "1.0.0",
+  "description": "Production-ready Discord bot for Dota 2 matchmaking.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "discord",
+    "dota2",
+    "matchmaking",
+    "bot"
+  ],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "discord.js": "^14.25.1",
+    "dotenv": "^17.3.1"
+  }
+}
