@@ -38,8 +38,13 @@ function formatTeam(teamName, teamIds, players, totalElo) {
 }
 
 function formatMatch(match, players) {
+  const statusLine =
+    match.status === 'reported' && match.winningTeam
+      ? `Match ${match.id} is closed. Winner: ${TEAM_LABELS[match.winningTeam]}.`
+      : `Match ${match.id} is ready.`;
+
   return [
-    `Match ${match.id} is ready.`,
+    statusLine,
     '',
     formatTeam('radiant', match.radiant, players, match.radiantTotalElo),
     '',
