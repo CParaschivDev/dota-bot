@@ -1,0 +1,149 @@
+syntax = "proto2";
+
+enum DOTA_CM_PICK {
+	DOTA_CM_RANDOM = 0;
+	DOTA_CM_GOOD_GUYS = 1;
+	DOTA_CM_BAD_GUYS = 2;
+}
+
+enum DOTABotDifficulty {
+	BOT_DIFFICULTY_PASSIVE = 0;
+	BOT_DIFFICULTY_EASY = 1;
+	BOT_DIFFICULTY_MEDIUM = 2;
+	BOT_DIFFICULTY_HARD = 3;
+	BOT_DIFFICULTY_UNFAIR = 4;
+	BOT_DIFFICULTY_INVALID = 5;
+	BOT_DIFFICULTY_EXTRA1 = 6;
+	BOT_DIFFICULTY_EXTRA2 = 7;
+	BOT_DIFFICULTY_EXTRA3 = 8;
+	BOT_DIFFICULTY_NPX = 9;
+}
+
+enum LobbyDotaTVDelay {
+	LobbyDotaTV_10 = 0;
+	LobbyDotaTV_120 = 1;
+	LobbyDotaTV_300 = 2;
+	LobbyDotaTV_900 = 3;
+}
+
+enum LobbyDotaPauseSetting {
+	LobbyDotaPauseSetting_Unlimited = 0;
+	LobbyDotaPauseSetting_Limited = 1;
+	LobbyDotaPauseSetting_Disabled = 2;
+}
+
+enum DOTALobbyVisibility {
+	DOTALobbyVisibility_Public = 0;
+	DOTALobbyVisibility_Friends = 1;
+	DOTALobbyVisibility_Unlisted = 2;
+}
+
+enum DOTASelectionPriorityRules {
+	k_DOTASelectionPriorityRules_Manual = 0;
+	k_DOTASelectionPriorityRules_Automatic = 1;
+}
+
+enum DOTAJoinLobbyResult {
+	DOTA_JOIN_RESULT_SUCCESS = 0;
+	DOTA_JOIN_RESULT_ALREADY_IN_GAME = 1;
+	DOTA_JOIN_RESULT_INVALID_LOBBY = 2;
+	DOTA_JOIN_RESULT_INCORRECT_PASSWORD = 3;
+	DOTA_JOIN_RESULT_ACCESS_DENIED = 4;
+	DOTA_JOIN_RESULT_GENERIC_ERROR = 5;
+	DOTA_JOIN_RESULT_INCORRECT_VERSION = 6;
+	DOTA_JOIN_RESULT_IN_TEAM_PARTY = 7;
+	DOTA_JOIN_RESULT_NO_LOBBY_FOUND = 8;
+	DOTA_JOIN_RESULT_LOBBY_FULL = 9;
+	DOTA_JOIN_RESULT_CUSTOM_GAME_INCORRECT_VERSION = 10;
+	DOTA_JOIN_RESULT_TIMEOUT = 11;
+	DOTA_JOIN_RESULT_CUSTOM_GAME_COOLDOWN = 12;
+	DOTA_JOIN_RESULT_BUSY = 13;
+	DOTA_JOIN_RESULT_NO_PLAYTIME = 14;
+}
+
+message CLobbyTeamDetails {
+	optional string team_name = 1;
+	optional string team_tag = 3;
+	optional uint32 team_id = 4;
+	optional uint64 team_logo = 5;
+	optional uint64 team_base_logo = 6;
+	optional uint64 team_banner_logo = 7;
+	optional bool team_complete = 8;
+	optional uint32 rank = 15;
+	optional sint32 rank_change = 16;
+	optional bool is_home_team = 17;
+	optional bool is_challenge_match = 18;
+	optional uint64 challenge_match_token_account = 19;
+	optional string team_logo_url = 20;
+	optional string team_abbreviation = 21;
+}
+
+message CMsgLobbyScenarioSave {
+	optional int32 version = 1;
+	optional bytes data = 2;
+}
+
+message CMsgPracticeLobbySetDetails {
+	message AbilityDraftSpecificDetails {
+		optional bool shuffle_draft_order = 1;
+	}
+
+	optional uint64 lobby_id = 1;
+	optional string game_name = 2;
+	repeated .CLobbyTeamDetails team_details = 3;
+	optional uint32 server_region = 4;
+	optional uint32 game_mode = 5;
+	optional .DOTA_CM_PICK cm_pick = 6 [default = DOTA_CM_RANDOM];
+	optional .DOTABotDifficulty bot_difficulty_radiant = 9 [default = BOT_DIFFICULTY_PASSIVE];
+	optional bool allow_cheats = 10;
+	optional bool fill_with_bots = 11;
+	optional bool allow_spectating = 13;
+	optional string pass_key = 15;
+	optional uint32 leagueid = 16;
+	optional uint32 penalty_level_radiant = 17;
+	optional uint32 penalty_level_dire = 18;
+	optional uint32 series_type = 20;
+	optional uint32 radiant_series_wins = 21;
+	optional uint32 dire_series_wins = 22;
+	optional bool allchat = 23 [default = false];
+	optional .LobbyDotaTVDelay dota_tv_delay = 24 [default = LobbyDotaTV_120];
+	optional bool lan = 25;
+	optional string custom_game_mode = 26;
+	optional string custom_map_name = 27;
+	optional uint32 custom_difficulty = 28;
+	optional uint64 custom_game_id = 29;
+	optional uint32 custom_min_players = 30;
+	optional uint32 custom_max_players = 31;
+	optional .DOTALobbyVisibility visibility = 33 [default = DOTALobbyVisibility_Public];
+	optional fixed64 custom_game_crc = 34;
+	optional fixed32 custom_game_timestamp = 37;
+	optional uint64 previous_match_override = 38;
+	optional .LobbyDotaPauseSetting pause_setting = 42 [default = LobbyDotaPauseSetting_Unlimited];
+	optional .DOTABotDifficulty bot_difficulty_dire = 43 [default = BOT_DIFFICULTY_PASSIVE];
+	optional uint64 bot_radiant = 44;
+	optional uint64 bot_dire = 45;
+	optional .DOTASelectionPriorityRules selection_priority_rules = 46 [default = k_DOTASelectionPriorityRules_Manual];
+	optional bool custom_game_penalties = 47;
+	optional string lan_host_ping_location = 48;
+	optional uint32 league_node_id = 49;
+	repeated int32 requested_hero_ids = 50;
+	optional .CMsgLobbyScenarioSave scenario_save = 51;
+	optional .CMsgPracticeLobbySetDetails.AbilityDraftSpecificDetails ability_draft_specific_details = 52;
+	optional bool do_player_draft = 53;
+	repeated int32 requested_hero_teams = 54;
+}
+
+message CMsgPracticeLobbyCreate {
+	optional string search_key = 1;
+	optional string pass_key = 5;
+	optional uint32 client_version = 6;
+	optional .CMsgPracticeLobbySetDetails lobby_details = 7;
+}
+
+message CMsgPracticeLobbyLaunch {
+	optional uint32 client_version = 5;
+}
+
+message CMsgPracticeLobbyJoinResponse {
+	optional .DOTAJoinLobbyResult result = 1 [default = DOTA_JOIN_RESULT_SUCCESS];
+}
