@@ -1,58 +1,58 @@
 # Dota Bot
 
-Bot Discord pentru matchmaking Dota 2, ELO, queue management si raportare rezultate, plus dashboard web public separat pentru vizualizare live.
+Discord bot for Dota 2 matchmaking, ELO, queue management, and result reporting, plus a separate public web dashboard for live visibility.
 
-## Ce include acum
+## What It Includes
 
-- bot Discord pentru queue, partide, serii si rezultate
-- validare de meci prin STRATZ pentru `submit-match`
-- dashboard web separat cu leaderboard, queue, sumar si istoric meciuri
-- persistenta SQLite pentru bot si dashboard
+- Discord bot for queue flow, matches, series, and results
+- STRATZ-based match validation for `submit-match`
+- separate web dashboard with leaderboard, queue, summary, and match history
+- SQLite persistence shared by the bot and the web dashboard
 
-## Cerinte
+## Requirements
 
 - Node.js 18+
-- un bot creat in Discord Developer Portal
-- token STRATZ pentru validare profile/meciuri
+- a bot application created in the Discord Developer Portal
+- a STRATZ token for profile and match validation
 
-## Setup local
+## Local Setup
 
-1. Instaleaza dependintele:
+1. Install dependencies:
 
 ```bash
 npm install
 ```
 
-2. Completeaza `.env` plecand de la `.env.example`:
+2. Fill in `.env` based on `.env.example`:
 
 ```env
-DISCORD_TOKEN=tokenul_botului
+DISCORD_TOKEN=your_bot_token
 CLIENT_ID=application_id
-GUILD_ID=id_server_pentru_testare
+GUILD_ID=test_server_id
 NODE_ENV=development
 DATABASE_PATH=./src/data/dota-bot.sqlite
-STRATZ_API_KEY=token_stratz
+STRATZ_API_KEY=your_stratz_token
 STRATZ_GRAPHQL_URL=https://api.stratz.com/graphql
 STRATZ_TIMEOUT_MS=15000
 WEB_HOST=0.0.0.0
 WEB_PORT=3000
-WEB_DEFAULT_GUILD_ID=id_server_pentru_dashboard
+WEB_DEFAULT_GUILD_ID=dashboard_default_guild_id
 WEB_REFRESH_MS=15000
 WEB_LIVE_HEARTBEAT_MS=25000
 WEB_DB_WATCH_DEBOUNCE_MS=400
 WEB_TITLE=Dota Matchmaking Pulse
-WEB_ADMIN_TOKEN=token_secret_pentru_admin_web
-WEB_ADMIN_ACTOR_ID=discord_user_id_optional
+WEB_ADMIN_TOKEN=secret_web_admin_token
+WEB_ADMIN_ACTOR_ID=optional_discord_user_id
 WEB_ADMIN_ALLOWED_GUILD_IDS=711497061651972117,123456789012345678
 DISCORD_OAUTH_CLIENT_ID=discord_application_id
 DISCORD_OAUTH_CLIENT_SECRET=discord_oauth_secret
-DISCORD_OAUTH_REDIRECT_URI=https://domeniul-tau.ro/auth/discord/callback
+DISCORD_OAUTH_REDIRECT_URI=https://your-domain.com/auth/discord/callback
 DISCORD_OAUTH_SCOPES=identify guilds
 BOT_CONTROL_HOST=127.0.0.1
 BOT_CONTROL_PORT=3001
-BOT_CONTROL_TOKEN=token_secret_pentru_bot_control
+BOT_CONTROL_TOKEN=secret_bot_control_token
 BOT_CONTROL_URL=http://127.0.0.1:3001
-WEB_DOMAIN=domeniul-tau.ro
+WEB_DOMAIN=your-domain.com
 BACKUP_DIRECTORY=./backups
 BACKUP_RETENTION_COUNT=15
 BACKUP_INTERVAL_MINUTES=360
@@ -60,48 +60,48 @@ BACKUP_ON_STARTUP=true
 WEB_ALERT_CHANNEL_ID=
 ```
 
-3. Ruleaza botul Discord:
+3. Start the Discord bot:
 
 ```bash
 npm start
 ```
 
-4. Ruleaza dashboardul web separat:
+4. Start the web dashboard separately:
 
 ```bash
 npm run start:web
 ```
 
-Botul porneste si un API intern de control pe `BOT_CONTROL_PORT`, folosit de dashboard pentru actiuni admin securizate.
+The bot also starts an internal control API on `BOT_CONTROL_PORT`, used by the dashboard for secure admin actions.
 
-5. Deschide dashboardul in browser:
+5. Open the dashboard in your browser:
 
 ```text
 http://localhost:3000
 ```
 
-## Slash commands
+## Slash Commands
 
-- `/join` - intra in queue
-- `/leave` - iese din queue
-- `/queue` - afiseaza queue-ul curent
-- `/role` - seteaza rolul preferat
-- `/elo` - afiseaza ELO
-- `/leaderboard` - top jucatori
-- `/steam` - link / info / unlink pentru profil Steam
-- `/submit-match` - valideaza meciul prin STRATZ si raporteaza automat castigatorul
-- `/report` - raportare manuala a rezultatului
+- `/join` - join the queue
+- `/leave` - leave the queue
+- `/queue` - show the current queue
+- `/role` - set preferred role
+- `/elo` - show ELO
+- `/leaderboard` - top players
+- `/steam` - link / info / unlink Steam profile
+- `/submit-match` - validate a match through STRATZ and auto-report the winner
+- `/report` - manually report a result
 
-## Dashboard web
+## Web Dashboard
 
-Dashboardul citeste aceeasi baza SQLite ca botul si expune un API read-only intern plus o interfata statica.
+The dashboard reads the same SQLite database as the bot and exposes an internal read-only API plus a static frontend.
 
-Endpointuri utile:
+Useful endpoints:
 
 - `GET /api/health`
 - `GET /api/meta`
 - `GET /api/dashboard`
-- `GET /api/live` (Server-Sent Events pentru update live)
+- `GET /api/live` (Server-Sent Events for live updates)
 - `GET /api/summary`
 - `GET /api/leaderboard?limit=20`
 - `GET /api/queue`
@@ -110,30 +110,30 @@ Endpointuri utile:
 - `GET /api/players/:userId`
 - `POST /api/admin/action`
 
-Poti selecta guildul prin query string, de exemplu:
+You can select the guild through the query string, for example:
 
 ```text
 http://localhost:3000/?guildId=1234567890
 ```
 
-## Admin panel web
+## Web Admin Panel
 
-Dashboardul are acum si actiuni admin direct din browser.
+The dashboard also includes direct admin actions from the browser.
 
-Autentificare recomandata:
+Recommended authentication:
 
-- Discord OAuth pentru sesiune web reala
-- fallback cu `WEB_ADMIN_TOKEN` doar daca OAuth nu este configurat sau pentru bootstrap
+- Discord OAuth for a real web session
+- `WEB_ADMIN_TOKEN` as a fallback only if OAuth is not configured or for bootstrap access
 
-Cum functioneaza:
+How it works:
 
-- browserul trimite `POST /api/admin/action` catre serverul web
-- serverul web valideaza sesiunea Discord si verifica daca ai `Manage Server` sau `Administrator` pe guildul selectat
-- serverul web trimite comanda catre API-ul intern al botului de la `BOT_CONTROL_URL`
-- botul executa mutatia reala in SQLite si in logica lui de matchmaking
-- dashboardul primeste update live prin SSE si isi reincarca automat starea
+- the browser sends `POST /api/admin/action` to the web server
+- the web server validates the Discord session and checks whether you have `Manage Server` or `Administrator` on the selected guild
+- the web server forwards the command to the bot's internal API at `BOT_CONTROL_URL`
+- the bot performs the actual mutation in SQLite and in matchmaking logic
+- the dashboard receives live updates through SSE and reloads state automatically
 
-Actiuni disponibile din web:
+Available web actions:
 
 - report pending result
 - confirm result
@@ -147,46 +147,46 @@ Actiuni disponibile din web:
 - create backup
 - list backups
 - restore backup
-- export audit log JSON/CSV
+- export audit log as JSON/CSV
 
-Recomandare:
+Recommendations:
 
-- foloseste aceeasi valoare pentru `WEB_ADMIN_TOKEN` si `BOT_CONTROL_TOKEN`
-- tine `BOT_CONTROL_HOST=127.0.0.1` ca sa nu expui API-ul intern in retea
-- seteaza `DISCORD_OAUTH_REDIRECT_URI` pe URL-ul public real al dashboardului
-- seteaza `WEB_ADMIN_ALLOWED_GUILD_IDS` daca vrei sa limitezi admin panel doar la anumite servere Discord
+- use the same value for `WEB_ADMIN_TOKEN` and `BOT_CONTROL_TOKEN`
+- keep `BOT_CONTROL_HOST=127.0.0.1` so the internal API is not exposed on the network
+- set `DISCORD_OAUTH_REDIRECT_URI` to the real public dashboard URL
+- set `WEB_ADMIN_ALLOWED_GUILD_IDS` if you want to limit the admin panel to specific Discord servers
 
-Atentie:
+Important:
 
-- tokenul admin este salvat local in browser pentru sesiunea ta
-- nu folosi un token slab sau reutilizat in alte servicii
-- sesiunea Discord se salveaza in cookie HttpOnly si se valideaza pe server
+- the manual admin token is stored locally in your browser for your session
+- do not use a weak token or a token reused in other services
+- the Discord session is stored in an HttpOnly cookie and validated on the server
 
-## Observatii STRATZ
+## STRATZ Notes
 
-- integrarea foloseste GraphQL la `STRATZ_GRAPHQL_URL`
-- cheia STRATZ ramane doar pe backend, nu este expusa in frontend
-- schema STRATZ poate varia; adaptorul din `src/services/stratzService.js` incearca mai multe forme de query compatibile
-- daca STRATZ raspunde cu challenge Cloudflare, validarea externa va esua pana cand cheia/rutele folosite sunt acceptate de STRATZ
+- the integration uses GraphQL at `STRATZ_GRAPHQL_URL`
+- the STRATZ key stays on the backend only and is never exposed to the frontend
+- the STRATZ schema can vary; the adapter in `src/services/stratzService.js` tries multiple compatible query shapes
+- if STRATZ returns a Cloudflare challenge, external validation will fail until the key/routes are accepted by STRATZ
 
-## Structura noua
+## Updated Structure
 
-- `src/index.js` - bootstrap pentru botul Discord
-- `src/services/stratzService.js` - adaptor STRATZ
-- `src/web/index.js` - server HTTP pentru dashboard
-- `src/web/dashboardData.js` - agregari read-only din SQLite
-- `src/web/public/` - frontend static pentru dashboard
-- `web.js` - entrypoint separat pentru dashboard
+- `src/index.js` - Discord bot bootstrap
+- `src/services/stratzService.js` - STRATZ adapter
+- `src/web/index.js` - dashboard HTTP server
+- `src/web/dashboardData.js` - read-only SQLite aggregations
+- `src/web/public/` - static dashboard frontend
+- `web.js` - separate dashboard entrypoint
 
 ## Deploy
 
-- ruleaza botul si dashboardul ca doua procese separate in acelasi repo
-- ambele trebuie sa pointeze la acelasi `DATABASE_PATH`
-- daca folosesti PM2, Docker sau systemd, separa procesul bot de procesul web
+- run the bot and dashboard as two separate processes in the same repo
+- both must point to the same `DATABASE_PATH`
+- if you use PM2, Docker, or systemd, keep the bot process separate from the web process
 
 ### PM2
 
-Ai deja configuratia pentru ambele procese in `ecosystem.config.js`:
+You already have both process definitions in `ecosystem.config.js`:
 
 ```bash
 pm2 start ecosystem.config.js
@@ -194,96 +194,96 @@ pm2 start ecosystem.config.js
 
 ### Docker
 
-Imaginea pornește botul si dashboardul in acelasi container:
+The image can run the bot and dashboard in the same container:
 
 ```bash
 docker build -t dota-bot .
 docker run --env-file .env -p 3000:3000 -p 3001:3001 dota-bot
 ```
 
-Porturi utile:
+Useful ports:
 
-- `3000` - dashboard web
-- `3001` - bot control API intern; ideal sa ramana expus doar local sau deloc in productie
+- `3000` - web dashboard
+- `3001` - internal bot control API; ideally keep it local-only or not exposed in production
 
 ### Docker Compose + Caddy
 
-Pentru deploy mai curat ai acum `docker-compose.yml` si `deploy/Caddyfile`:
+For a cleaner deploy, you now have `docker-compose.yml` and `deploy/Caddyfile`:
 
 ```bash
 docker compose up --build -d
 ```
 
-Servicii:
+Services:
 
-- `bot` - proces Discord + bot control API
-- `web` - dashboard HTTP
-- `caddy` - reverse proxy public pentru dashboard
+- `bot` - Discord process + bot control API
+- `web` - dashboard HTTP server
+- `caddy` - public reverse proxy for the dashboard
 
-`Caddy` foloseste variabila `WEB_DOMAIN`, iar traficul public intra doar prin proxy.
+`Caddy` uses the `WEB_DOMAIN` variable, and all public traffic flows through the proxy.
 
-### Docker Compose override pentru local dev
+### Docker Compose Override for Local Dev
 
-Fisierul `docker-compose.override.yml` este pregatit pentru dezvoltare locala si face bind mount pe repo:
+`docker-compose.override.yml` is set up for local development and bind-mounts the repo:
 
 ```bash
 docker compose up --build
 ```
 
-In local dev expune:
+In local dev it exposes:
 
-- `3000` pentru dashboard
-- `3001` pentru bot control API
-- `8080` pentru Caddy HTTP
-- `8443` pentru Caddy HTTPS
+- `3000` for the dashboard
+- `3001` for the bot control API
+- `8080` for Caddy HTTP
+- `8443` for Caddy HTTPS
 
-### Backup-uri SQLite
+### SQLite Backups
 
-Ai scriptul:
+You have the script:
 
 ```bash
 npm run backup:db
 ```
 
-Si restore manual:
+And manual restore:
 
 ```bash
 npm run restore:db -- ./backups/dota-bot-YYYY-MM-DDTHH-MM-SS.sqlite
 ```
 
-Ce face:
+What it does:
 
-- copiaza baza SQLite in `BACKUP_DIRECTORY`
-- pastreaza doar ultimele `BACKUP_RETENTION_COUNT` backup-uri
-- functioneaza si in container, deoarece volumul `dota_backups` este montat in `/app/backups`
-- la restore, verifica integritatea backupului si face mai intai o copie de siguranta a bazei curente
-- admin panel-ul poate lista backup-urile existente, crea un backup nou si porni restore-ul direct din browser
+- copies the SQLite database into `BACKUP_DIRECTORY`
+- keeps only the latest `BACKUP_RETENTION_COUNT` backups
+- works in containers too, because the `dota_backups` volume is mounted at `/app/backups`
+- on restore, validates backup integrity and creates a safety copy of the current database first
+- the admin panel can list existing backups, create a new one, and trigger restore directly from the browser
 
-### Backup automat
+### Automatic Backups
 
-- botul ruleaza si un scheduler intern de backup la fiecare `BACKUP_INTERVAL_MINUTES`
-- daca `BACKUP_ON_STARTUP=true`, face si un backup imediat la pornire
-- in PM2 exista si procesul `dota-backup` cu cron la 6 ore, pentru redundanta operationala
+- the bot runs an internal backup scheduler every `BACKUP_INTERVAL_MINUTES`
+- if `BACKUP_ON_STARTUP=true`, it also creates a backup immediately on startup
+- PM2 also includes a `dota-backup` process with a 6-hour cron restart for operational redundancy
 
-### Audit log admin
+### Admin Audit Log
 
-Actiunile din admin panel sunt inregistrate in `admin_audit_log` si pot fi vazute direct din dashboard.
+Actions from the admin panel are stored in `admin_audit_log` and can be viewed directly in the dashboard.
 
-Se salveaza:
+Stored fields include:
 
-- actiunea
-- actorul si sursa autentificarii
-- target-ul
-- statusul `success` / `error`
-- payload detaliat si eventuale erori
+- action
+- actor and authentication source
+- target
+- `success` / `error` status
+- detailed payload and any error details
 
-In plus:
+Additionally:
 
-- poti exporta audit log-ul din UI in JSON sau CSV
-- exportul si vizualizarea auditului respecta aceleasi reguli de admin auth ca mutatiile web
+- you can export the audit log from the UI as JSON or CSV
+- audit export and audit visibility follow the same admin auth rules as web mutations
 
-### Alerte Discord
+### Discord Alerts
 
-- seteaza `WEB_ALERT_CHANNEL_ID` ca ID-ul canalului unde vrei alertele operationale
-- botul trimite alerte pentru esecuri de backup automat
-- botul trimite alerte si pentru actiuni admin web care esueaza
+- set `WEB_ALERT_CHANNEL_ID` to the channel ID where you want operational alerts
+- the bot sends alerts for automatic backup failures
+- the bot also sends alerts for failed web admin actions
