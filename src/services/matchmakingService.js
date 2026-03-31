@@ -35,11 +35,11 @@ const {
 const { hasManagementAccess } = require('../utils/permissions');
 
 class MatchmakingService {
-  constructor(database, config, logger, openDota, steamLobby) {
+  constructor(database, config, logger, statsProvider, steamLobby) {
     this.database = database;
     this.config = config;
     this.logger = logger;
-    this.openDota = openDota;
+    this.statsProvider = statsProvider;
     this.steamLobby = steamLobby;
     this.client = null;
     this.readyCheckInterval = null;
@@ -683,18 +683,18 @@ class MatchmakingService {
 
     const isDirectMapping =
       match.radiantPlayers.every(
-        (player) => this.openDota.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'radiant',
+        (player) => this.statsProvider.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'radiant',
       ) &&
       match.direPlayers.every(
-        (player) => this.openDota.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'dire',
+        (player) => this.statsProvider.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'dire',
       );
 
     const isSwappedMapping =
       match.radiantPlayers.every(
-        (player) => this.openDota.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'dire',
+        (player) => this.statsProvider.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'dire',
       ) &&
       match.direPlayers.every(
-        (player) => this.openDota.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'radiant',
+        (player) => this.statsProvider.getPlayerSide(externalByAccount.get(player.steam_account_id)) === 'radiant',
       );
 
     if (!isDirectMapping && !isSwappedMapping) {
@@ -2359,7 +2359,7 @@ class MatchmakingService {
     let normalized;
 
     try {
-      normalized = this.openDota.normalizeSteamInput(interaction.options.getString('steam', true));
+      normalized = this.statsProvider.normalizeSteamInput(interaction.options.getString('steam', true));
     } catch (error) {
       return this.send(interaction, {
         embeds: [buildNoticeEmbed('Steam Link', error.message, EMBED_COLORS.warning)],
@@ -2385,13 +2385,13 @@ class MatchmakingService {
     let profile;
 
     try {
-      profile = await this.openDota.getPlayerProfile(normalized.accountId);
+      profile = await this.statsProvider.getPlayerProfile(normalized.accountId);
     } catch (error) {
       return this.send(interaction, {
         embeds: [
           buildNoticeEmbed(
             'Steam Link',
-            `Could not validate that Steam account through OpenDota. ${error.message}`,
+            `Could not validate that Steam account through STRATZ. ${error.message}`,
             EMBED_COLORS.warning,
           ),
         ],
@@ -3690,13 +3690,13 @@ class MatchmakingService {
     let externalMatch;
 
     try {
-      externalMatch = await this.openDota.getMatch(dotaMatchId);
+      externalMatch = await this.statsProvider.getMatch(dotaMatchId);
     } catch (error) {
       return this.send(interaction, {
         embeds: [
           buildNoticeEmbed(
             'Submit Match',
-            `Could not load match ${dotaMatchId} from OpenDota. ${error.message}`,
+            `Could not load match ${dotaMatchId} from STRATZ. ${error.message}`,
             EMBED_COLORS.warning,
           ),
         ],
@@ -3725,7 +3725,7 @@ class MatchmakingService {
           embeds: [
             buildNoticeEmbed(
               'Submit Match',
-              `OpenDota match ${dotaMatchId} does not include all linked players. Missing: ${validation.players.map((player) => `<@${player.user_id}>`).join(', ')}. Make sure everyone exposed public match data and that the correct Dota match ID was used.`,
+              `STRATZ match ${dotaMatchId} does not include all linked players. Missing: ${validation.players.map((player) => `<@${player.user_id}>`).join(', ')}. Make sure everyone exposed public match data and that the correct Dota match ID was used.`,
               EMBED_COLORS.warning,
             ),
           ],
@@ -3748,13 +3748,13 @@ class MatchmakingService {
 
       if (validation.reason === 'external_unfinished') {
         return this.send(interaction, {
-          embeds: [buildNoticeEmbed('Submit Match', `OpenDota match ${dotaMatchId} is not finished or not parsed yet. Try again in a bit.`, EMBED_COLORS.warning)],
+          embeds: [buildNoticeEmbed('Submit Match', `STRATZ match ${dotaMatchId} is not finished or not available yet. Try again in a bit.`, EMBED_COLORS.warning)],
           ephemeral: true,
         });
       }
 
       return this.send(interaction, {
-        embeds: [buildNoticeEmbed('Submit Match', 'Could not validate that OpenDota match against the bot lobby.', EMBED_COLORS.warning)],
+        embeds: [buildNoticeEmbed('Submit Match', 'Could not validate that STRATZ match against the bot lobby.', EMBED_COLORS.warning)],
         ephemeral: true,
       });
     }

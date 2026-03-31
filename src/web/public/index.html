@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ro">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dota Matchmaking Pulse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <div class="ambient ambient-a"></div>
+      <div class="ambient ambient-b"></div>
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Dashboard public</p>
+          <h1 id="page-title">Dota Matchmaking Pulse</h1>
+          <p class="hero-copy">
+            Leaderboard, queue si istoric de meciuri pentru botul tau Discord, cu validare STRATZ in spate.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <div id="auth-box" class="auth-box">
+            <div id="auth-status" class="auth-status">Se verifica sesiunea Discord...</div>
+            <div class="auth-actions">
+              <a id="auth-login" class="button-link auth-link" href="/auth/discord/login">Login cu Discord</a>
+              <a id="auth-logout" class="button-link auth-link auth-link-secondary" href="/auth/discord/logout">Logout</a>
+            </div>
+          </div>
+          <label class="guild-picker">
+            <span>Guild</span>
+            <select id="guild-select"></select>
+          </label>
+          <div class="refresh-note">
+            <span class="pulse-dot"></span>
+            <span id="last-refresh">Se incarca...</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="dashboard-grid">
+        <section class="panel summary-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Stare live</p>
+            <h2>Panou general</h2>
+          </div>
+          <div id="summary-cards" class="summary-cards"></div>
+          <div id="summary-extra" class="summary-extra"></div>
+        </section>
+
+        <section class="panel queue-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Queue</p>
+            <h2>Jucatori in asteptare</h2>
+          </div>
+          <div id="queue-list" class="stack-list empty-state">Queue gol.</div>
+        </section>
+
+        <section class="panel leaderboard-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">ELO</p>
+            <h2>Top jucatori</h2>
+          </div>
+          <div id="leaderboard-list" class="leaderboard-list empty-state">Nu exista jucatori.</div>
+        </section>
+
+        <section class="panel matches-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Meciuri</p>
+            <h2>Istoric recent</h2>
+          </div>
+          <div id="matches-list" class="matches-list empty-state">Nu exista meciuri.</div>
+        </section>
+
+        <section class="panel details-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Detalii</p>
+            <h2 id="details-title">Selecteaza un meci sau un player</h2>
+          </div>
+          <div id="details-body" class="details-body empty-state">
+            Click pe un meci din istoric sau pe un player din leaderboard pentru detalii.
+          </div>
+        </section>
+
+        <section class="panel admin-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Admin web</p>
+            <h2>Control direct din pagina</h2>
+          </div>
+          <div class="admin-layout">
+            <div class="admin-login">
+              <div class="admin-mode" id="admin-mode">Mod admin clasic cu token manual.</div>
+              <label class="admin-field" id="admin-token-field">
+                <span>Admin token</span>
+                <input id="admin-token" type="password" placeholder="WEB_ADMIN_TOKEN" autocomplete="off" />
+              </label>
+              <label class="admin-field" id="admin-actor-field">
+                <span>Actor ID</span>
+                <input id="admin-actor-id" type="text" placeholder="Discord user ID optional" autocomplete="off" />
+              </label>
+              <button id="admin-save" class="button-link" type="button">Salveaza sesiunea</button>
+            </div>
+
+            <div class="admin-forms">
+              <form id="admin-match-form" class="admin-card">
+                <h3>Actiuni match</h3>
+                <label class="admin-field">
+                  <span>Match ID</span>
+                  <input name="matchId" type="text" placeholder="M0001" />
+                </label>
+                <label class="admin-field">
+                  <span>STRATZ Match ID</span>
+                  <input name="dotaMatchId" type="text" placeholder="8234567890" />
+                </label>
+                <label class="admin-field">
+                  <span>Winning Team</span>
+                  <select name="winningTeam">
+                    <option value="radiant">Radiant</option>
+                    <option value="dire">Dire</option>
+                  </select>
+                </label>
+                <label class="admin-field">
+                  <span>User ID pentru host/captain</span>
+                  <input name="userId" type="text" placeholder="Discord user ID" />
+                </label>
+                <label class="admin-field checkbox-field">
+                  <input name="requeuePlayers" type="checkbox" />
+                  <span>Requeue players la cancel</span>
+                </label>
+                <label class="admin-field">
+                  <span>Reason</span>
+                  <input name="reason" type="text" placeholder="motiv optional" />
+                </label>
+                <div class="admin-actions-grid">
+                  <button type="button" data-action="reportResult" class="button-link">Report pending</button>
+                  <button type="button" data-action="confirmResult" class="button-link">Confirm result</button>
+                  <button type="button" data-action="denyResult" class="button-link">Deny result</button>
+                  <button type="button" data-action="submitStratz" class="button-link">Submit STRATZ</button>
+                  <button type="button" data-action="setHost" class="button-link">Set host</button>
+                  <button type="button" data-action="setCaptain" class="button-link">Set captain</button>
+                  <button type="button" data-action="cancelMatch" class="button-link">Cancel match</button>
+                  <button type="button" data-action="undoReport" class="button-link">Undo report</button>
+                </div>
+              </form>
+
+              <form id="admin-player-form" class="admin-card">
+                <h3>Actiuni player</h3>
+                <label class="admin-field">
+                  <span>User ID</span>
+                  <input name="userId" type="text" placeholder="Discord user ID" />
+                </label>
+                <label class="admin-field">
+                  <span>ELO nou</span>
+                  <input name="elo" type="number" min="0" step="1" placeholder="1200" />
+                </label>
+                <label class="admin-field">
+                  <span>Reason</span>
+                  <input name="reason" type="text" placeholder="manual adjustment" />
+                </label>
+                <div class="admin-actions-grid single-row">
+                  <button type="button" data-action="setElo" class="button-link">Set ELO</button>
+                </div>
+              </form>
+
+              <form id="admin-system-form" class="admin-card">
+                <h3>Actiuni sistem</h3>
+                <label class="admin-field">
+                  <span>Backup file pentru restore</span>
+                  <input name="backupFileName" type="text" placeholder="dota-bot-2026-03-31T00-00-00-000Z.sqlite" />
+                </label>
+                <div class="admin-actions-grid">
+                  <button type="button" data-action="createBackup" class="button-link">Create backup</button>
+                  <button type="button" data-action="listBackups" class="button-link">Refresh backups</button>
+                  <button type="button" data-action="restoreBackup" class="button-link">Restore backup</button>
+                </div>
+                <div id="backup-list" class="backup-list empty-state">Backup list indisponibil.</div>
+              </form>
+            </div>
+          </div>
+          <div id="admin-status" class="admin-status empty-state">Admin panel inactiv pana salvezi un token.</div>
+        </section>
+
+        <section class="panel audit-panel">
+          <div class="panel-heading">
+            <p class="panel-kicker">Audit</p>
+            <h2>Istoric actiuni admin</h2>
+          </div>
+          <div class="audit-toolbar">
+            <button id="export-audit-json" type="button" class="button-link">Export JSON</button>
+            <button id="export-audit-csv" type="button" class="button-link">Export CSV</button>
+          </div>
+          <div id="audit-log" class="audit-log empty-state">Nu exista inca actiuni admin pentru guildul selectat.</div>
+        </section>
+      </main>
+    </div>
+
+    <template id="summary-card-template">
+      <article class="summary-card">
+        <p class="summary-label"></p>
+        <strong class="summary-value"></strong>
+        <span class="summary-meta"></span>
+      </article>
+    </template>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

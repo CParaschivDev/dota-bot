@@ -3,3 +3,10 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+logs/
+backups/
+src/data/*.sqlite
+src/data/*.sqlite-shm
+src/data/*.sqlite-wal
+src/data/steam/
+dota-bot.zip

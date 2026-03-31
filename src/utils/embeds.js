@@ -181,8 +181,8 @@ function buildMatchEmbed(match, options = {}) {
   const steamLobbyErrorLine =
     showSensitiveInfo && match.steam_lobby_error ? `Auto Dota error: ${match.steam_lobby_error}` : null;
   const externalMatchLine = match.dota_match_id
-    ? `OpenDota match: ${match.dota_match_id}${match.dota_sides_flipped ? ' (teams swapped in lobby)' : ''}`
-    : 'OpenDota match: not linked';
+    ? `STRATZ match: ${match.dota_match_id}${match.dota_sides_flipped ? ' (teams swapped in lobby)' : ''}`
+    : 'STRATZ match: not linked';
   const lobbyNameLine = match.lobby_name ? `Lobby name: ${match.lobby_name}` : 'Lobby name: not generated';
   const lobbyPasswordLine = match.lobby_password
     ? `Lobby password: ${showSensitiveInfo ? `\`${match.lobby_password}\`` : 'hidden'}`

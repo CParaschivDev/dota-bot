@@ -1,92 +1,150 @@
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 
 const { config, validateConfig } = require('./config');
+const { createDatabase } = require('./data/database');
+const { createDefaultState } = require('./data/defaultState');
 const { loadCommands } = require('./handlers/commandHandler');
 const { loadEvents } = require('./handlers/eventHandler');
-const { StateService } = require('./services/stateService');
-const { MatchmakingService } = require('./services/matchmakingService');
 const { DotaGcLobbyService } = require('./services/dotaGcLobbyService');
-const { createDefaultState } = require('./data/defaultState');
+const { BackupScheduler } = require('./services/backupScheduler');
+const { DiscordAlertService } = require('./services/discordAlertService');
+const { MatchmakingService } = require('./services/matchmakingService');
+const { StratzService } = require('./services/stratzService');
+const { WebAdminService } = require('./services/webAdminService');
+const { StateService } = require('./services/stateService');
+const { startBotControlServer } = require('./botControl');
 const { JsonFileStore } = require('./utils/fileStore');
 const { registerCommands } = require('./utils/registerCommands');
-const { createDatabase } = require('./data/database');
+const { createRuntimeLogger } = require('./utils/runtimeLogger');
 
-async function bootstrap() {
-  const missing = validateConfig(config);
+async function bootstrapBot(options = {}) {
+  const currentConfig = options.config || config;
+  const missing = validateConfig(currentConfig);
 
   if (missing.length > 0) {
-    console.error(`Missing required environment variables: ${missing.join(', ')}`);
-    console.error('Update C:/dota-bot/.env, then run `node index.js` again.');
-    process.exit(1);
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
   }
 
+  const logger = options.logger || createRuntimeLogger('bot');
   const client = new Client({
     intents: [GatewayIntentBits.Guilds],
   });
 
   client.commands = new Collection();
-  client.config = config;
+  client.config = currentConfig;
 
-  // Create a simple logger
-  const logger = {
-    info: (msg) => console.log(`[INFO] ${msg}`),
-    debug: (msg) => console.log(`[DEBUG] ${msg}`),
-    error: (msg, error) => console.error(`[ERROR] ${msg}`, error || ''),
-    warn: (msg) => console.warn(`[WARN] ${msg}`),
-  };
-
-  const store = new JsonFileStore(config.dataFile, createDefaultState());
-  const stateService = new StateService(store, config);
-
+  const store = new JsonFileStore(currentConfig.dataFile, createDefaultState());
+  const stateService = new StateService(store, currentConfig);
   await stateService.initialize();
 
-  // Initialize Steam lobby service
-  const steamLobby = new DotaGcLobbyService(config, logger);
+  const database = options.database || (await createDatabase(currentConfig.databasePath));
+  const ownsDatabase = !options.database;
+  const steamLobby = options.steamLobby || new DotaGcLobbyService(currentConfig, logger);
+  const statsProvider = options.statsProvider || new StratzService(currentConfig, logger);
+
   await steamLobby.start();
 
-  // Initialize sqlite database and pass it into MatchmakingService. Keep JsonFileStore
-  // for StateService (separate JSON-based state).
-  const database = await createDatabase(config.databasePath || config.databasePath);
+  const alertService = new DiscordAlertService(client, currentConfig, createRuntimeLogger('alerts'));
+  const backupScheduler = options.backupScheduler || new BackupScheduler(currentConfig, createRuntimeLogger('backup'), alertService);
 
-  // Initialize matchmaking service with steam lobby and sqlite database
   const matchmakingService = new MatchmakingService(
     database,
-    config,
+    currentConfig,
     logger,
-    null, // openDota - not initialized here, can be added if needed
+    statsProvider,
     steamLobby,
   );
 
   await matchmakingService.initialize();
+  const webAdminService = new WebAdminService(matchmakingService, currentConfig, logger, alertService);
+  const botControlRuntime = await startBotControlServer(webAdminService, {
+    config: currentConfig,
+    logger: createRuntimeLogger('bot-control'),
+  });
 
   client.services = {
     state: stateService,
     matchmaking: matchmakingService,
     dotaLobby: steamLobby,
+    statsProvider,
+    webAdmin: webAdminService,
+    backup: backupScheduler,
+    alerts: alertService,
   };
 
-  // Bind client to matchmaking service so it can access Discord API
   matchmakingService.bindClient(client);
   matchmakingService.startBackgroundJobs();
+  await backupScheduler.start();
 
   const commands = await loadCommands(client);
   await loadEvents(client);
 
   const registrationScope = await registerCommands(
-    config,
+    currentConfig,
     commands.map((command) => command.data.toJSON()),
   );
 
-  console.log(`Registered ${commands.length} slash commands to ${registrationScope}.`);
+  logger.info(`Registered ${commands.length} slash commands to ${registrationScope}.`);
 
   client.on('error', (error) => {
     logger.error('Discord client error.', error);
   });
 
-  await client.login(config.token);
+  await client.login(currentConfig.token);
+
+  async function close() {
+    if (matchmakingService.readyCheckInterval) {
+      clearInterval(matchmakingService.readyCheckInterval);
+      matchmakingService.readyCheckInterval = null;
+    }
+
+    client.destroy();
+
+    if (steamLobby && steamLobby.steamUser && typeof steamLobby.steamUser.logOff === 'function') {
+      try {
+        steamLobby.steamUser.logOff();
+      } catch (error) {
+        logger.warn('Could not log off the Steam client cleanly.', error);
+      }
+    }
+
+    if (botControlRuntime) {
+      await botControlRuntime.close();
+    }
+
+    if (backupScheduler) {
+      await backupScheduler.stop();
+    }
+
+    if (ownsDatabase) {
+      await database.close();
+    }
+  }
+
+  return {
+    client,
+    database,
+    logger,
+    close,
+  };
 }
 
-bootstrap().catch((error) => {
-  console.error('Failed to start Dota bot.', error);
-  process.exit(1);
-});
+async function startFromCli() {
+  const runtime = await bootstrapBot();
+
+  const shutdown = async () => {
+    try {
+      await runtime.close();
+    } finally {
+      process.exit(0);
+    }
+  };
+
+  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', shutdown);
+}
+
+module.exports = {
+  bootstrapBot,
+  startFromCli,
+};

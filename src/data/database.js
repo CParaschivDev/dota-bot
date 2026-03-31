@@ -72,6 +72,7 @@ async function applyMigrations(db) {
   await db.exec('CREATE INDEX IF NOT EXISTS idx_matches_guild_dota_match ON matches (guild_id, dota_match_id)');
   await db.exec('CREATE INDEX IF NOT EXISTS idx_matches_guild_series ON matches (guild_id, series_id, series_game_number)');
   await db.exec('CREATE INDEX IF NOT EXISTS idx_series_guild_status ON series (guild_id, status, created_at)');
+  await db.exec('CREATE INDEX IF NOT EXISTS idx_admin_audit_log_guild_created ON admin_audit_log (guild_id, created_at DESC)');
 }
 
 async function createDatabase(filePath) {

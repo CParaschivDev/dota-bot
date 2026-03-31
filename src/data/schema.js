@@ -180,12 +180,28 @@ CREATE TABLE IF NOT EXISTS rating_adjustments (
   created_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  actor_id TEXT NOT NULL,
+  actor_label TEXT DEFAULT NULL,
+  actor_source TEXT DEFAULT NULL,
+  target_type TEXT DEFAULT NULL,
+  target_id TEXT DEFAULT NULL,
+  status TEXT NOT NULL,
+  details_json TEXT DEFAULT NULL,
+  error_message TEXT DEFAULT NULL,
+  created_at TEXT NOT NULL
+);
+
 CREATE INDEX IF NOT EXISTS idx_queue_entries_guild_position ON queue_entries (guild_id, position);
 CREATE INDEX IF NOT EXISTS idx_matches_guild_status ON matches (guild_id, status, created_at);
 CREATE INDEX IF NOT EXISTS idx_match_players_guild_user ON match_players (guild_id, user_id, match_id);
 CREATE INDEX IF NOT EXISTS idx_party_invites_guild_user ON party_invites (guild_id, user_id);
 CREATE INDEX IF NOT EXISTS idx_rating_adjustments_guild_created ON rating_adjustments (guild_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_series_guild_status ON series (guild_id, status, created_at);
+CREATE INDEX IF NOT EXISTS idx_admin_audit_log_guild_created ON admin_audit_log (guild_id, created_at DESC);
 `;
 
 module.exports = {

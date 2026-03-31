@@ -4,7 +4,10 @@
   "description": "Production-ready Discord bot for Dota 2 matchmaking.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "start:web": "node web.js",
+    "backup:db": "node scripts/backup-db.js",
+    "restore:db": "node scripts/restore-db.js"
   },
   "keywords": [
     "discord",

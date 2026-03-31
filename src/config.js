@@ -2,6 +2,13 @@ const path = require('path');
 
 require('dotenv').config();
 
+function parseIdList(value) {
+  return String(value || '')
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
 const config = {
   token: process.env.DISCORD_TOKEN ? process.env.DISCORD_TOKEN.trim() : '',
   clientId: process.env.CLIENT_ID ? process.env.CLIENT_ID.trim() : '',
@@ -26,10 +33,39 @@ const config = {
   // Database
   databasePath: process.env.DATABASE_PATH || path.join(__dirname, 'data', 'dota-bot.sqlite'),
 
-  // OpenDota
-  openDotaApiBaseUrl: process.env.OPENDOTA_API_BASE_URL || 'https://api.opendota.com/api/',
-  openDotaApiKey: process.env.OPENDOTA_API_KEY || null,
-  openDotaTimeoutMs: Number(process.env.OPENDOTA_TIMEOUT_MS) || 15000,
+  // STRATZ
+  stratzGraphqlUrl: process.env.STRATZ_GRAPHQL_URL || 'https://api.stratz.com/graphql',
+  stratzApiKey: process.env.STRATZ_API_KEY || process.env.OPENDOTA_API_KEY || null,
+  stratzTimeoutMs: Number(process.env.STRATZ_TIMEOUT_MS) || Number(process.env.OPENDOTA_TIMEOUT_MS) || 15000,
+
+  // Web dashboard
+  webHost: process.env.WEB_HOST || '0.0.0.0',
+  webPort: Number(process.env.WEB_PORT) || 3000,
+  webDefaultGuildId: process.env.WEB_DEFAULT_GUILD_ID || process.env.GUILD_ID || null,
+  webRefreshMs: Number(process.env.WEB_REFRESH_MS) || 15000,
+  webLiveHeartbeatMs: Number(process.env.WEB_LIVE_HEARTBEAT_MS) || 25000,
+  webDbWatchDebounceMs: Number(process.env.WEB_DB_WATCH_DEBOUNCE_MS) || 400,
+  webTitle: process.env.WEB_TITLE || 'Dota Matchmaking Pulse',
+  webAdminToken: process.env.WEB_ADMIN_TOKEN || process.env.BOT_CONTROL_TOKEN || null,
+  webAdminActorId: process.env.WEB_ADMIN_ACTOR_ID || null,
+  webAdminAllowedGuildIds: parseIdList(process.env.WEB_ADMIN_ALLOWED_GUILD_IDS),
+  discordOauthClientId: process.env.DISCORD_OAUTH_CLIENT_ID || process.env.CLIENT_ID || '',
+  discordOauthClientSecret: process.env.DISCORD_OAUTH_CLIENT_SECRET || process.env.DISCORD_CLIENT_SECRET || '',
+  discordOauthRedirectUri: process.env.DISCORD_OAUTH_REDIRECT_URI || null,
+  discordOauthScopes: process.env.DISCORD_OAUTH_SCOPES || 'identify guilds',
+
+  // Bot control API used by the dashboard for admin mutations
+  botControlHost: process.env.BOT_CONTROL_HOST || '127.0.0.1',
+  botControlPort: Number(process.env.BOT_CONTROL_PORT) || 3001,
+  botControlToken: process.env.BOT_CONTROL_TOKEN || process.env.WEB_ADMIN_TOKEN || null,
+  botControlUrl: process.env.BOT_CONTROL_URL || `http://127.0.0.1:${Number(process.env.BOT_CONTROL_PORT) || 3001}`,
+  webAlertChannelId: process.env.WEB_ALERT_CHANNEL_ID || null,
+
+  // Backups
+  backupDirectory: process.env.BACKUP_DIRECTORY || './backups',
+  backupRetentionCount: Number(process.env.BACKUP_RETENTION_COUNT) || 15,
+  backupIntervalMinutes: Number(process.env.BACKUP_INTERVAL_MINUTES) || 360,
+  backupOnStartup: String(process.env.BACKUP_ON_STARTUP || 'true').toLowerCase() === 'true',
 
   // Steam / Dota GC auto-lobby settings
   steamAutoLobbyEnabled: (process.env.STEAM_AUTO_LOBBY_ENABLED || 'false').toLowerCase() === 'true',

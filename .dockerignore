@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.env
+.git
+logs
+backups
+src/data/steam
+src/data/*.sqlite
+src/data/*.sqlite-shm
+src/data/*.sqlite-wal
+src/data/state.json
+dota-bot.zip
+.git
+deploy/.env

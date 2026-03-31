@@ -3,9 +3,9 @@ const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
   data: new SlashCommandBuilder()
     .setName('submit-match')
-    .setDescription('Validate a finished Dota match through OpenDota and auto-report the winner.')
+    .setDescription('Validate a finished Dota match through STRATZ and auto-report the winner.')
     .addStringOption((option) =>
-      option.setName('dota_match_id').setDescription('The Dota/OpenDota match ID').setRequired(true),
+      option.setName('dota_match_id').setDescription('The Dota/STRATZ match ID').setRequired(true),
     )
     .addStringOption((option) =>
       option.setName('match_id').setDescription('Optional bot match ID, for example M0001').setRequired(false),

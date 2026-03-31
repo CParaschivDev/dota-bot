@@ -1,0 +1,68 @@
+version: '3.9'
+
+services:
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node index.js
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - dota_data:/app/src/data
+      - dota_logs:/app/logs
+      - dota_backups:/app/backups
+    expose:
+      - '3001'
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: node web.js
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - bot
+    volumes:
+      - dota_data:/app/src/data
+      - dota_logs:/app/logs
+      - dota_backups:/app/backups
+    expose:
+      - '3000'
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+  backup:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: sh -c "while true; do node scripts/backup-db.js; sleep 21600; done"
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - bot
+    volumes:
+      - dota_data:/app/src/data
+      - dota_backups:/app/backups
+
+volumes:
+  dota_data:
+  dota_logs:
+  dota_backups:
+  caddy_data:
+  caddy_config:
