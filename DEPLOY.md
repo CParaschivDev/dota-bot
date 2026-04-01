@@ -16,6 +16,7 @@ This project is designed to run as two separate services that share the same SQL
 - point both services to the same `DATABASE_PATH`
 - make sure `BACKUP_DIRECTORY` is persisted across restarts
 - set `WEB_ALERT_CHANNEL_ID` if you want Discord alerts for failures
+- review `MONITORING.md` before the first live deploy
 
 ## Required Environment Variables
 
@@ -86,6 +87,12 @@ Services included:
 - `caddy`
 - `backup`
 
+Hardening notes in the current compose setup:
+
+- services run with `no-new-privileges`
+- `bot`, `web`, and `backup` use `read_only: true`
+- writable runtime state stays on mounted volumes and `/tmp`
+
 Useful commands:
 
 ```bash
@@ -96,6 +103,8 @@ docker compose logs -f caddy
 docker compose logs -f backup
 ```
 
+Also see `MONITORING.md` for a shorter operational checklist.
+
 ## Reverse Proxy
 
 `deploy/Caddyfile` expects:
@@ -104,6 +113,8 @@ docker compose logs -f backup
 - the `web` container to be reachable on port `3000`
 
 Public traffic should go through Caddy only.
+
+Caddy also sets basic security headers for HSTS, content type sniffing, clickjacking protection, and referrer policy.
 
 ## Backups and Restore
 

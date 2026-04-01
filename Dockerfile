@@ -2,13 +2,15 @@ FROM node:20-bookworm-slim
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install --omit=dev
-
-COPY . .
-
-RUN mkdir -p /app/src/data
-
 ENV NODE_ENV=production
+
+RUN mkdir -p /app/src/data /app/backups /app/logs && chown -R node:node /app
+
+USER node
+
+COPY --chown=node:node package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --chown=node:node . .
 
 CMD ["sh", "-c", "node index.js & node web.js"]

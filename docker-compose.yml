@@ -9,6 +9,13 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
       - dota_data:/app/src/data
       - dota_logs:/app/logs
@@ -24,8 +31,15 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       - bot
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
       - dota_data:/app/src/data
       - dota_logs:/app/logs
@@ -38,6 +52,8 @@ services:
     restart: unless-stopped
     depends_on:
       - web
+    security_opt:
+      - no-new-privileges:true
     ports:
       - '80:80'
       - '443:443'
@@ -54,8 +70,15 @@ services:
     restart: unless-stopped
     env_file:
       - .env
+    environment:
+      NODE_ENV: production
     depends_on:
       - bot
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
     volumes:
       - dota_data:/app/src/data
       - dota_backups:/app/backups

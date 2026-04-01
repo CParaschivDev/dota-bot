@@ -253,6 +253,7 @@ Additional docs:
 - `LICENSE` - ISC license
 - `OPERATOR-GUIDE.md` - day-to-day commands and Steam lobby operations
 - `PRODUCTION.env.full.example` - fuller production env example with Steam enabled
+- `MONITORING.md` - minimal production monitoring checks and alerts
 
 ### PM2
 

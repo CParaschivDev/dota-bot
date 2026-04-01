@@ -89,6 +89,12 @@ Check status:
 docker compose ps
 ```
 
+Optional quick hardening check:
+
+```bash
+docker compose exec web sh -lc 'id && mount | grep " /app "'
+```
+
 Watch logs:
 
 ```bash
@@ -97,6 +103,8 @@ docker compose logs -f web
 docker compose logs -f caddy
 docker compose logs -f backup
 ```
+
+Also review `MONITORING.md` once before first public traffic.
 
 ## 6. Verify the Deployment
 
