@@ -6,6 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "start:web": "node web.js",
+    "ops:ps": "docker compose ps",
+    "ops:logs:bot": "docker compose logs -f bot",
+    "ops:logs:web": "docker compose logs -f web",
+    "ops:logs:caddy": "docker compose logs -f caddy",
+    "ops:logs:backup": "docker compose logs -f backup",
+    "ops:health:web": "node -e \"fetch('http://127.0.0.1:3000/api/health').then((response) => response.text().then((body) => { if (!response.ok) { console.error(body); process.exit(1); } console.log(body); })).catch((error) => { console.error(error); process.exit(1); });\"",
+    "ops:health:bot": "node -e \"fetch('http://127.0.0.1:3001/health').then((response) => response.text().then((body) => { if (!response.ok) { console.error(body); process.exit(1); } console.log(body); })).catch((error) => { console.error(error); process.exit(1); });\"",
     "backup:db": "node scripts/backup-db.js",
     "restore:db": "node scripts/restore-db.js"
   },

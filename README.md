@@ -298,6 +298,17 @@ Services:
 - `caddy` - public reverse proxy for the dashboard
 
 `Caddy` uses the `WEB_DOMAIN` variable, and all public traffic flows through the proxy.
+Compose also waits for the bot and web healthchecks before starting dependent services.
+
+Useful ops helpers:
+
+```bash
+npm run ops:ps
+npm run ops:logs:bot
+npm run ops:logs:web
+npm run ops:health:web
+npm run ops:health:bot
+```
 
 ### Docker Compose Override for Local Dev
 

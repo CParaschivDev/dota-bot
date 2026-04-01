@@ -94,6 +94,7 @@ Hardening notes in the current compose setup:
 - services run with `no-new-privileges`
 - `bot`, `web`, and `backup` use `read_only: true`
 - writable runtime state stays on mounted volumes and `/tmp`
+- dependent services wait for container healthchecks before starting
 
 Useful commands:
 

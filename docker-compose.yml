@@ -40,7 +40,8 @@ services:
     environment:
       NODE_ENV: production
     depends_on:
-      - bot
+      bot:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     read_only: true
@@ -63,7 +64,8 @@ services:
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:
-      - web
+      web:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     ports:
@@ -85,7 +87,8 @@ services:
     environment:
       NODE_ENV: production
     depends_on:
-      - bot
+      bot:
+        condition: service_healthy
     security_opt:
       - no-new-privileges:true
     read_only: true

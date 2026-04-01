@@ -7,6 +7,7 @@ This is a minimal monitoring checklist for production.
 - public dashboard health: `curl -fsS https://your-domain.com/api/health`
 - local web health: `curl -fsS http://127.0.0.1:3000/api/health`
 - internal bot control health: `curl -fsS http://127.0.0.1:3001/health`
+- Docker health state: `docker compose ps` and `docker inspect --format='{{json .State.Health}}' <container>`
 
 ## Docker Compose Logs
 
