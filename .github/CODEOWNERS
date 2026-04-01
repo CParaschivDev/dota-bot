@@ -1,0 +1,20 @@
+# Default owner
+* @CParaschivDev
+
+# GitHub configuration
+.github/ @CParaschivDev
+
+# Runtime and deployment
+Dockerfile @CParaschivDev
+docker-compose.yml @CParaschivDev
+docker-compose.override.yml @CParaschivDev
+deploy/ @CParaschivDev
+ecosystem.config.js @CParaschivDev
+
+# Core application
+src/ @CParaschivDev
+scripts/ @CParaschivDev
+README.md @CParaschivDev
+DEPLOY.md @CParaschivDev
+VPS-DEPLOY.md @CParaschivDev
+SECURITY.md @CParaschivDev

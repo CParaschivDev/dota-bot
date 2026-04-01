@@ -1,5 +1,7 @@
 # Dota Bot
 
+![CI](https://github.com/CParaschivDev/dota-bot/actions/workflows/ci.yml/badge.svg)
+
 Discord bot for Dota 2 matchmaking, ELO, queue management, and result reporting, plus a separate public web dashboard for live visibility.
 
 ## What It Includes
@@ -190,6 +192,8 @@ Additional docs:
 - `VPS-DEPLOY.md` - copy-paste VPS deployment steps for Docker Compose
 - `PRODUCTION.env.example` - production-oriented env template
 - `SECURITY.md` - security recommendations and reporting guidance
+- `CHANGELOG.md` - tracked project changes
+- `RELEASE.md` - release preparation checklist
 
 ### PM2
 
