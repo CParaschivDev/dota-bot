@@ -1,0 +1,218 @@
+const http = require('http');
+const fs = require('fs/promises');
+const path = require('path');
+
+const { createDatabase } = require('../src/data/database');
+const { createBackup, listBackups, verifySqliteFile } = require('../src/utils/databaseBackup');
+const { bootstrapWebServer } = require('../src/web/index');
+
+async function safeRemove(targetPath) {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    try {
+      await fs.rm(targetPath, { recursive: true, force: true });
+      return;
+    } catch (error) {
+      if (attempt === 4) {
+        console.warn(`cleanup warning for ${targetPath}: ${error.message}`);
+        return;
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+  }
+}
+
+async function runBackupSmokeTest() {
+  const tempRoot = path.join(process.cwd(), 'tmp-ci-backup');
+  await safeRemove(tempRoot);
+  await fs.mkdir(tempRoot, { recursive: true });
+
+  const dbPath = path.join(tempRoot, 'test.sqlite');
+  const backupDir = path.join(tempRoot, 'backups');
+  const guildId = 'g1';
+  const userId = 'u1';
+  const now = new Date().toISOString();
+  const db = await createDatabase(dbPath);
+
+  try {
+    await db.run(
+      'INSERT INTO players (guild_id, user_id, username, display_name, role, elo, wins, losses, matches_played, current_streak, best_win_streak, last_result, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [guildId, userId, 'user1', 'Original Name', 'mid', 1200, 1, 0, 1, 1, 1, 'win', now, now],
+    );
+
+    const backup = await createBackup({
+      databasePath: dbPath,
+      backupDirectory: backupDir,
+      retentionCount: 5,
+      prefix: 'dota-bot',
+    });
+
+    const backups = await listBackups(backupDir, 'dota-bot');
+    const backupPath = path.join(backupDir, backup.fileName);
+
+    await verifySqliteFile(backupPath);
+
+    if (!Array.isArray(backups) || !backups.find((entry) => entry.fileName === backup.fileName)) {
+      throw new Error('backup listing failed');
+    }
+  } finally {
+    await db.close();
+    await safeRemove(tempRoot);
+  }
+}
+
+async function runWebSmokeTest() {
+  const tempRoot = path.join(process.cwd(), 'tmp-ci-web');
+  await safeRemove(tempRoot);
+  await fs.mkdir(tempRoot, { recursive: true });
+
+  const dbPath = path.join(tempRoot, 'test.sqlite');
+  const backupDir = path.join(tempRoot, 'backups');
+  const guildId = 'g1';
+  const token = 'test-token';
+  const now = new Date().toISOString();
+  const db = await createDatabase(dbPath);
+
+  let mockServer = null;
+  let runtime = null;
+
+  try {
+    await db.run(
+      'INSERT INTO players (guild_id, user_id, username, display_name, role, elo, wins, losses, matches_played, current_streak, best_win_streak, last_result, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [guildId, 'u1', 'user1', 'User One', 'mid', 1234, 5, 3, 8, 2, 3, 'win', now, now],
+    );
+    await db.run(
+      'INSERT INTO admin_audit_log (guild_id, action, actor_id, actor_label, actor_source, target_type, target_id, status, details_json, error_message, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [guildId, 'createBackup', 'admin1', 'Admin One', 'token', 'system', guildId, 'success', JSON.stringify({ ok: true }), null, now],
+    );
+
+    mockServer = http.createServer(async (req, res) => {
+      const chunks = [];
+
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+
+      const body = chunks.length ? JSON.parse(Buffer.concat(chunks).toString('utf8')) : {};
+      let result = null;
+
+      if (req.url === '/admin/list-backups') {
+        result = [{ fileName: 'dota-bot-2026-03-31T00-00-00-000Z.sqlite', sizeBytes: 2048, createdAt: now, updatedAt: now }];
+      } else if (req.url === '/admin/create-backup') {
+        result = { fileName: 'dota-bot-created.sqlite', destination: path.join(backupDir, 'dota-bot-created.sqlite'), prunedFiles: [] };
+      } else if (req.url === '/admin/restore-backup') {
+        result = { restoredFrom: body.backupFileName, safetyCopy: 'pre-restore-test.sqlite' };
+      } else {
+        res.writeHead(404, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ ok: false, error: 'not found' }));
+        return;
+      }
+
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ ok: true, result }));
+    });
+
+    await new Promise((resolve) => mockServer.listen(0, '127.0.0.1', resolve));
+    const mockAddress = mockServer.address();
+
+    runtime = await bootstrapWebServer({
+      database: db,
+      config: {
+        webHost: '127.0.0.1',
+        webPort: 0,
+        webTitle: 'Smoke',
+        webRefreshMs: 15000,
+        webLiveHeartbeatMs: 25000,
+        webDbWatchDebounceMs: 100,
+        webDefaultGuildId: guildId,
+        webAdminAllowedGuildIds: [],
+        webAdminToken: token,
+        webAdminActorId: 'admin1',
+        discordOauthClientId: '',
+        discordOauthClientSecret: '',
+        discordOauthRedirectUri: '',
+        botControlHost: '127.0.0.1',
+        botControlPort: mockAddress.port,
+        botControlToken: token,
+        botControlUrl: `http://127.0.0.1:${mockAddress.port}`,
+        databasePath: dbPath,
+        backupDirectory: backupDir,
+      },
+      logger: {
+        info() {},
+        warn() {},
+        error(...args) {
+          console.error(...args);
+        },
+        debug() {},
+      },
+    });
+
+    const webPort = runtime.server.address().port;
+
+    const request = (pathname, options = {}) => fetch(`http://127.0.0.1:${webPort}${pathname}`, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+    });
+
+    const auditJson = await request(`/api/admin/audit-export?format=json&guildId=${guildId}`);
+    const auditJsonBody = await auditJson.text();
+    const auditCsv = await request(`/api/admin/audit-export?format=csv&guildId=${guildId}`);
+    const auditCsvBody = await auditCsv.text();
+    const backupsResponse = await request(`/api/admin/backups?guildId=${guildId}`);
+    const backupsPayload = await backupsResponse.json();
+    const actionResponse = await request('/api/admin/action', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'restoreBackup',
+        guildId,
+        backupFileName: 'dota-bot-2026-03-31T00-00-00-000Z.sqlite',
+      }),
+    });
+    const actionPayload = await actionResponse.json();
+
+    if (!auditJson.ok || !String(auditJson.headers.get('content-disposition') || '').includes('.json') || !auditJsonBody.includes('createBackup')) {
+      throw new Error('audit json route failed');
+    }
+
+    if (!auditCsv.ok || !String(auditCsv.headers.get('content-disposition') || '').includes('.csv') || !auditCsvBody.includes('createBackup')) {
+      throw new Error('audit csv route failed');
+    }
+
+    if (!backupsResponse.ok || !Array.isArray(backupsPayload.backups) || backupsPayload.backups.length !== 1) {
+      throw new Error('backups route failed');
+    }
+
+    if (!actionResponse.ok || !actionPayload.ok || actionPayload.result.restoredFrom !== 'dota-bot-2026-03-31T00-00-00-000Z.sqlite') {
+      throw new Error('admin action route failed');
+    }
+  } finally {
+    if (runtime) {
+      await runtime.close();
+    }
+
+    if (mockServer) {
+      await new Promise((resolve) => mockServer.close(resolve));
+    }
+
+    await db.close();
+    await safeRemove(tempRoot);
+  }
+}
+
+async function main() {
+  await runBackupSmokeTest();
+  await runWebSmokeTest();
+  console.log('ci-smoke-ok');
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

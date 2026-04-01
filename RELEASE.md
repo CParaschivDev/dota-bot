@@ -39,3 +39,10 @@ Use this checklist before publishing a tagged release.
 - publish GitHub release notes
 - summarize major changes from `CHANGELOG.md`
 - mention any required env or migration changes
+
+Tag example:
+
+```bash
+git tag v1.0.1
+git push origin v1.0.1
+```

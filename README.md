@@ -251,6 +251,8 @@ Additional docs:
 - `CHANGELOG.md` - tracked project changes
 - `RELEASE.md` - release preparation checklist
 - `LICENSE` - ISC license
+- `OPERATOR-GUIDE.md` - day-to-day commands and Steam lobby operations
+- `PRODUCTION.env.full.example` - fuller production env example with Steam enabled
 
 ### PM2
 
