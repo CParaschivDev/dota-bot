@@ -46,6 +46,13 @@ Set at least:
 - `DISCORD_OAUTH_CLIENT_SECRET`
 - `DISCORD_OAUTH_REDIRECT_URI`
 
+Also set these if the bot should create real Dota lobbies from Discord commands:
+
+- `STEAM_AUTO_LOBBY_ENABLED=true`
+- `STEAM_ACCOUNT_NAME`
+- `STEAM_PASSWORD`
+- `STEAM_SHARED_SECRET`
+
 Recommended production values:
 
 ```env
@@ -108,6 +115,7 @@ Then verify manually:
 - the admin panel works on an allowed guild
 - backup creation works
 - audit entries appear after admin actions
+- `/test-lobby create name:dada password:1234` creates a Steam-backed lobby if auto-lobby mode is enabled
 
 ## 7. Updating the Server Later
 

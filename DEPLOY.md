@@ -8,6 +8,7 @@ This project is designed to run as two separate services that share the same SQL
 ## Production Checklist
 
 - set a real `.env` file based on `.env.example`
+- configure Steam credentials if you want the bot to create and launch real Dota lobbies
 - keep `BOT_CONTROL_HOST=127.0.0.1` unless you explicitly need remote access
 - use a strong shared secret for `WEB_ADMIN_TOKEN` and `BOT_CONTROL_TOKEN`
 - set `WEB_ADMIN_ALLOWED_GUILD_IDS` if the admin panel should only work for specific Discord servers
@@ -30,6 +31,16 @@ WEB_ADMIN_TOKEN=
 BOT_CONTROL_TOKEN=
 BOT_CONTROL_URL=http://127.0.0.1:3001
 WEB_DOMAIN=your-domain.com
+```
+
+Required additionally for Steam GC lobby creation:
+
+```env
+STEAM_AUTO_LOBBY_ENABLED=true
+STEAM_ACCOUNT_NAME=
+STEAM_PASSWORD=
+STEAM_SHARED_SECRET=
+STEAM_DATA_DIRECTORY=./src/data/steam
 ```
 
 Recommended for public admin auth:
@@ -127,6 +138,7 @@ After deployment, verify:
 6. a manual backup can be created
 7. audit log entries appear in the dashboard
 8. the internal bot control API is not publicly exposed
+9. `/test-lobby create name:dada password:1234` works if Steam GC mode is enabled
 
 ## Suggested GitHub Repo Metadata
 

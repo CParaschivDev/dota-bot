@@ -1,0 +1,56 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  github-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run syntax checks
+        run: node --check index.js && node --check web.js && node --check src/web/index.js && node --check src/services/webAdminService.js && node --check src/utils/databaseBackup.js && node --check src/web/public/app.js
+
+      - name: Build release notes
+        id: notes
+        shell: bash
+        run: |
+          python <<'PY'
+          from pathlib import Path
+          changelog = Path('CHANGELOG.md').read_text(encoding='utf-8')
+          start = changelog.find('## [Unreleased]')
+          if start == -1:
+              notes = 'See CHANGELOG.md for release details.'
+          else:
+              tail = changelog[start + len('## [Unreleased]'):]
+              next_heading = tail.find('\n## [')
+              section = tail if next_heading == -1 else tail[:next_heading]
+              notes = section.strip() or 'See CHANGELOG.md for release details.'
+          Path('release-notes.md').write_text(notes + '\n', encoding='utf-8')
+          PY
+          echo "path=release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.path }}

@@ -1,12 +1,16 @@
 # Dota Bot
 
 ![CI](https://github.com/CParaschivDev/dota-bot/actions/workflows/ci.yml/badge.svg)
+![Release](https://github.com/CParaschivDev/dota-bot/actions/workflows/release.yml/badge.svg)
 
-Discord bot for Dota 2 matchmaking, ELO, queue management, and result reporting, plus a separate public web dashboard for live visibility.
+Discord bot for Dota 2 matchmaking, ELO, queue management, Steam-powered lobby creation, and result reporting, plus a separate public web dashboard for live visibility.
+
+The bot can create and control real Dota lobbies through Steam Game Coordinator flows, including commands like `/test-lobby create`, `/test-lobby launch`, `/test-lobby close`, and `/launch-lobby`.
 
 ## What It Includes
 
 - Discord bot for queue flow, matches, series, and results
+- Steam-backed Dota lobby creation, launch, close, and host/captain controls
 - STRATZ-based match validation for `submit-match`
 - separate web dashboard with leaderboard, queue, summary, and match history
 - SQLite persistence shared by the bot and the web dashboard
@@ -16,6 +20,7 @@ Discord bot for Dota 2 matchmaking, ELO, queue management, and result reporting,
 - Node.js 18+
 - a bot application created in the Discord Developer Portal
 - a STRATZ token for profile and match validation
+- a Steam account is required only if you want automatic Dota lobby creation through the Game Coordinator
 
 ## Local Setup
 
@@ -60,6 +65,18 @@ BACKUP_RETENTION_COUNT=15
 BACKUP_INTERVAL_MINUTES=360
 BACKUP_ON_STARTUP=true
 WEB_ALERT_CHANNEL_ID=
+STEAM_AUTO_LOBBY_ENABLED=false
+STEAM_ACCOUNT_NAME=
+STEAM_PASSWORD=
+STEAM_SHARED_SECRET=
+STEAM_DATA_DIRECTORY=./src/data/steam
+STEAM_LOBBY_REGION=europe
+STEAM_LOBBY_GAME_MODE=captains_mode
+STEAM_LOBBY_ALLOW_SPECTATING=false
+STEAM_LOBBY_ALLCHAT=false
+STEAM_LOBBY_PAUSE_SETTING=unlimited
+STEAM_LOBBY_TV_DELAY=120
+STEAM_LOBBY_DEBUG=false
 ```
 
 3. Start the Discord bot:
@@ -76,6 +93,10 @@ npm run start:web
 
 The bot also starts an internal control API on `BOT_CONTROL_PORT`, used by the dashboard for secure admin actions.
 
+If you want the bot to create Dota lobbies automatically, also configure the Steam variables and set `STEAM_AUTO_LOBBY_ENABLED=true`.
+
+Without the Steam credentials, queueing, ELO, result reporting, STRATZ validation, and the dashboard still work, but Steam GC lobby creation and launch commands will not.
+
 5. Open the dashboard in your browser:
 
 ```text
@@ -84,15 +105,50 @@ http://localhost:3000
 
 ## Slash Commands
 
+The bot currently exposes 32 slash command roots across matchmaking, Steam lobby control, series management, queue administration, and reporting. The `test-lobby` command itself includes `create`, `launch`, and `close` subcommands for Steam-backed test lobbies.
+
+Core player commands:
+
 - `/join` - join the queue
 - `/leave` - leave the queue
 - `/queue` - show the current queue
 - `/role` - set preferred role
 - `/elo` - show ELO
 - `/leaderboard` - top players
+- `/match` - show full details for a specific match
+- `/match-history` - show recent match history
+- `/party` - create and manage party queue groups
 - `/steam` - link / info / unlink Steam profile
-- `/submit-match` - validate a match through STRATZ and auto-report the winner
 - `/report` - manually report a result
+- `/confirm-result` - confirm a pending result
+- `/deny-result` - dispute a pending result
+- `/submit-match` - validate a match through STRATZ and auto-report the winner
+
+Steam and lobby commands:
+
+- `/test-lobby create` - create a solo test Dota lobby through Steam GC with custom name/password
+- `/test-lobby launch` - launch the current test lobby
+- `/test-lobby close` - close the current test lobby
+- `/launch-lobby` - launch an auto-created full match lobby
+- `/claim-host` - claim lobby host responsibility
+- `/set-host` - admin override for lobby host
+- `/set-captain` - admin override for captain selection
+
+Series and admin commands:
+
+- `/create-series`
+- `/series`
+- `/series-next`
+- `/set-series-sides`
+- `/pause-series`
+- `/resume-series`
+- `/close-series`
+- `/cancel-series`
+- `/cancelmatch`
+- `/setelo`
+- `/removefromqueue`
+- `/queue-panel`
+- `/undo-report`
 
 ## Web Dashboard
 
@@ -194,6 +250,7 @@ Additional docs:
 - `SECURITY.md` - security recommendations and reporting guidance
 - `CHANGELOG.md` - tracked project changes
 - `RELEASE.md` - release preparation checklist
+- `LICENSE` - ISC license
 
 ### PM2
 
