@@ -48,6 +48,8 @@ Run after deploy or restart:
 ```bash
 curl -fsS https://your-domain.com/api/health
 docker compose ps
+docker inspect --format='{{json .State.Health}}' $(docker compose ps -q bot)
+docker inspect --format='{{json .State.Health}}' $(docker compose ps -q web)
 docker compose logs --since=10m bot
 docker compose logs --since=10m web
 ls backups

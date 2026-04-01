@@ -13,4 +13,4 @@ RUN npm ci --omit=dev && npm cache clean --force
 
 COPY --chown=node:node . .
 
-CMD ["sh", "-c", "node index.js & node web.js"]
+CMD ["node", "index.js"]

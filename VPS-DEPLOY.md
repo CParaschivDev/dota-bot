@@ -83,6 +83,8 @@ Do not expose port `3001` publicly.
 docker compose up --build -d
 ```
 
+The image defaults to the bot process; Docker Compose starts the bot, web, and backup roles separately.
+
 Check status:
 
 ```bash

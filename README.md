@@ -265,11 +265,17 @@ pm2 start ecosystem.config.js
 
 ### Docker
 
-The image can run the bot and dashboard in the same container:
+The image now defaults to a single process and starts the bot entrypoint:
 
 ```bash
 docker build -t dota-bot .
-docker run --env-file .env -p 3000:3000 -p 3001:3001 dota-bot
+docker run --env-file .env -p 3001:3001 dota-bot
+```
+
+To run the web process with the same image:
+
+```bash
+docker run --env-file .env -p 3000:3000 --entrypoint node dota-bot web.js
 ```
 
 Useful ports:

@@ -80,6 +80,8 @@ Build and start the full stack:
 docker compose up --build -d
 ```
 
+The image itself now defaults to a single process (`node index.js`). Docker Compose is responsible for starting the bot, web, and backup roles separately.
+
 Services included:
 
 - `bot`
@@ -101,6 +103,7 @@ docker compose logs -f bot
 docker compose logs -f web
 docker compose logs -f caddy
 docker compose logs -f backup
+docker compose ps
 ```
 
 Also see `MONITORING.md` for a shorter operational checklist.
