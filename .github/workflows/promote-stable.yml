@@ -1,0 +1,30 @@
+name: Promote Stable
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Branch, tag, or commit SHA to promote to stable'
+        required: true
+        default: 'main'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Validate source ref
+        run: git rev-parse --verify HEAD
+
+      - name: Move stable branch
+        run: |
+          git push origin HEAD:refs/heads/stable --force-with-lease=refs/heads/stable

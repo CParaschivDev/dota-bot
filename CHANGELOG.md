@@ -20,6 +20,7 @@ The format is based on Keep a Changelog and this project aims to follow Semantic
 - GitHub issue templates, PR template, CODEOWNERS, and CI workflow
 - ISC license file and tag-based GitHub release workflow
 - Steam lobby env examples and command coverage in the docs
+- stable promotion workflow plus release policy and rollback guides
 
 ### Changed
 

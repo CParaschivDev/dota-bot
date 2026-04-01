@@ -39,6 +39,8 @@ Use this checklist before publishing a tagged release.
 - publish GitHub release notes
 - summarize major changes from `CHANGELOG.md`
 - mention any required env or migration changes
+- promote the approved ref to `stable`
+- deploy the VPS from `stable`
 
 Tag example:
 
@@ -46,3 +48,8 @@ Tag example:
 git tag v1.0.1
 git push origin v1.0.1
 ```
+
+Promotion reminder:
+
+- see `RELEASE-POLICY.md` for the full `main -> tag -> stable -> VPS` flow
+- see `ROLLBACK.md` for rollback options if a release needs to be reverted

@@ -250,6 +250,8 @@ Additional docs:
 - `SECURITY.md` - security recommendations and reporting guidance
 - `CHANGELOG.md` - tracked project changes
 - `RELEASE.md` - release preparation checklist
+- `RELEASE-POLICY.md` - recommended `main -> tag -> stable -> VPS` flow
+- `ROLLBACK.md` - rollback and restore steps
 - `LICENSE` - ISC license
 - `OPERATOR-GUIDE.md` - day-to-day commands and Steam lobby operations
 - `PRODUCTION.env.full.example` - fuller production env example with Steam enabled
