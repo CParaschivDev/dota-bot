@@ -184,6 +184,13 @@ Important:
 - both must point to the same `DATABASE_PATH`
 - if you use PM2, Docker, or systemd, keep the bot process separate from the web process
 
+Additional docs:
+
+- `DEPLOY.md` - production deployment checklist and verification
+- `VPS-DEPLOY.md` - copy-paste VPS deployment steps for Docker Compose
+- `PRODUCTION.env.example` - production-oriented env template
+- `SECURITY.md` - security recommendations and reporting guidance
+
 ### PM2
 
 You already have both process definitions in `ecosystem.config.js`:
